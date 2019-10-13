@@ -12,7 +12,17 @@ from HuobiDMService import HuobiDM
 from pprint import pprint
 
 #数据结构
-from HuobiData import GDataDMInfo, GDataGlobal, GDataDMBBInfo
+from HuobiData import GDataDMInfo, GDataGlobal, GDataDMBBInfo, Datacontract_index
+
+
+# 保留4位小数
+def convert2f(floatValue, nums=3):
+    if floatValue:
+        if nums == 0:
+            return int(floatValue)
+        else:
+            return round(floatValue, nums)
+    return 0.0
 
 
 class MuMainWindow(QMainWindow):
@@ -32,8 +42,8 @@ class MuMainWindow(QMainWindow):
         with open('C:\HuoBiKey.json', 'r') as loadf:
             load_dict = json.load(loadf)
             URL = load_dict['URL']
-            ACCESS_KEY = load_dict['Access_Key1']
-            SECRET_KEY = load_dict['Secret_Key1']
+            ACCESS_KEY = load_dict['Access_Key']
+            SECRET_KEY = load_dict['Secret_Key']
             pprint(URL)
             pprint(ACCESS_KEY)
             pprint(SECRET_KEY)
@@ -66,11 +76,21 @@ class MuMainWindow(QMainWindow):
         self.__Slate.BTNETH.clicked.connect(self.CallETHInfo)
         pass
 
+
+
     '''
     ======================
     函数API
     ======================
     '''
+    #查看某个币种
+    def CallSeeBBInfo(self):
+        self.Callcontract_index()
+        self.CallContract_info()
+        self.Callcontract_account_info()
+        self.UpdateUIBBInfo()
+        pass
+
     #获取合约信息
     def CallContract_info(self):
         if not GDataGlobal.GCurSymbol:
@@ -108,6 +128,17 @@ class MuMainWindow(QMainWindow):
         GDataDMBBInfo.lever_rate = jsonValue['data'][0]['lever_rate']
         GDataDMBBInfo.adjust_factor = jsonValue['data'][0]['adjust_factor']
         GDataDMBBInfo.printObj()
+        pass
+
+    #获取合约指数信息
+    def Callcontract_index(self):
+        if not GDataGlobal.GCurSymbol:
+            return
+        jsonValue = self.__HBAPI.get_contract_index(GDataGlobal.GCurSymbol)
+        if jsonValue['status'] == 'ok':
+            GDataGlobal.Gindex_price = convert2f(jsonValue['data'][0]['index_price'])
+
+        GDataGlobal.printObj()
         pass
 
     '''
@@ -165,17 +196,13 @@ class MuMainWindow(QMainWindow):
     #EOS按钮
     def CallEOSInfo(self):
         GDataGlobal.GCurSymbol = 'EOS'
-        self.CallContract_info()
-        self.Callcontract_account_info()
-        self.UpdateUIBBInfo()
+        self.CallSeeBBInfo()
         pass
 
     #ETH按钮
     def CallETHInfo(self):
         GDataGlobal.GCurSymbol = 'ETH'
-        self.CallContract_info()
-        self.Callcontract_account_info()
-        self.UpdateUIBBInfo()
+        self.CallSeeBBInfo()
         pass
 
     '''
@@ -187,27 +214,39 @@ class MuMainWindow(QMainWindow):
     def UpdateUIBBInfo(self):
         if not GDataDMBBInfo.status == 'ok' :
             return
-
-        self.__Slate.info1.setText(str(GDataDMBBInfo.margin_balance))
+        str1 = str(convert2f(GDataDMBBInfo.margin_balance))
+        str2 = str(convert2f(GDataDMBBInfo.margin_balance * GDataGlobal.Gindex_price * 7.12, 0))
+        self.__Slate.info1.setText(str1 + '|' + str2)
 
         if GDataDMBBInfo.profit_real >= 0:
             self.__Slate.info2.setStyleSheet("color:green")
         else:
             self.__Slate.info2.setStyleSheet("color:red")
-        self.__Slate.info2.setText(str(GDataDMBBInfo.profit_real))
+        # 已实现盈亏
+        str1 = str(convert2f(GDataDMBBInfo.profit_real))
+        str2 = str(convert2f(GDataDMBBInfo.profit_real * GDataGlobal.Gindex_price * 7.12, 0))
+        self.__Slate.info2.setText(str1 + '|' + str2)
 
         if GDataDMBBInfo.profit_unreal >= 0:
             self.__Slate.info3.setStyleSheet("color:green")
         else:
             self.__Slate.info3.setStyleSheet("color:red")
-        self.__Slate.info3.setText(str(GDataDMBBInfo.profit_unreal))
-        self.__Slate.info4.setText(str(GDataDMBBInfo.margin_available))
-        self.__Slate.info5.setText(str(GDataDMBBInfo.margin_position))
-        self.__Slate.info6.setText(str(GDataDMBBInfo.margin_frozen))
-        self.__Slate.info7.setText(str(GDataDMBBInfo.liquidation_price))
-        self.__Slate.info8.setText(str(GDataDMBBInfo.risk_rate))
-        self.__Slate.info9.setText(str(GDataDMBBInfo.adjust_factor))
-        self.__Slate.info10.setText(str(GDataDMBBInfo.lever_rate))
+        str1 = str(convert2f(GDataDMBBInfo.profit_unreal))
+        str2 = str(convert2f(GDataDMBBInfo.profit_unreal * GDataGlobal.Gindex_price * 7.12, 0))
+        self.__Slate.info3.setText(str1 + '|' + str2)
+
+        str1 = str(convert2f(GDataDMBBInfo.margin_available))
+        str2 = str(convert2f(GDataDMBBInfo.margin_available * GDataGlobal.Gindex_price * 7.12, 0))
+        self.__Slate.info4.setText(str1 + '|' + str2)
+
+        self.__Slate.info5.setText(str(convert2f(GDataDMBBInfo.margin_position)))
+        self.__Slate.info6.setText(str(convert2f(GDataDMBBInfo.margin_frozen)))
+
+        #None
+        self.__Slate.info7.setText(str(convert2f(GDataDMBBInfo.liquidation_price)))
+        self.__Slate.info8.setText(str(convert2f(GDataDMBBInfo.risk_rate)))
+        self.__Slate.info9.setText(str(convert2f(GDataDMBBInfo.adjust_factor)))
+        self.__Slate.info10.setText(str(convert2f(GDataDMBBInfo.lever_rate)))
         self.__Slate.info11.setText(str(GDataDMBBInfo.symbol))
         pass
 

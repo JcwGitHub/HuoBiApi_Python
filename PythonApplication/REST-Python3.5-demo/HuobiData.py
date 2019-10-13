@@ -21,9 +21,11 @@ class DataRoot(object):
     #数据更新回调函数
 
 #全局信息
-class DataGlobal(object):
+class DataGlobal(DataRoot):
     # 当前币种
     GCurSymbol = ''
+    # 当前指数信息，当前价位
+    Gindex_price = ''
     pass
 GDataGlobal = DataGlobal()
 
@@ -77,3 +79,10 @@ class DataDMBBInfo(DataRoot):
     ts = ''
     pass
 GDataDMBBInfo = DataDMBBInfo()
+
+class Datacontract_index(DataRoot):
+    symbol = ''
+    index_price =''
+    index_ts = ''
+    ts =''
+    pass
