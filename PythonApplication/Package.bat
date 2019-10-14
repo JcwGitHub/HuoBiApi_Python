@@ -1,0 +1,1 @@
+call pyinstaller.exe .\PythonApplication.spec

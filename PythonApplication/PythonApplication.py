@@ -1,22 +1,42 @@
-﻿import sys
+﻿import os
+import sys
+import time
+import datetime
+import xlrd
 import json
 import threading
-import time
-
-import xlrd
-from PyQt5.QtGui import QPalette
-from PyQt5.QtWidgets import QApplication, QMainWindow, QAction
-
-import PythonApplicationUI
-from HuobiDMService import HuobiDM
 from pprint import pprint
 
+
 #数据结构
+#import PythonThread
 from HuobiData import GDataDMInfo, GDataGlobal, GDataDMBBInfo, Datacontract_index
 
+#QT
+from PyQt5.QtGui import QPalette
+from PyQt5.QtWidgets import QApplication, QMainWindow, QAction
+#QT UI
+import PythonApplicationUI
 
+#huoBi API
+from HuobiDMService import HuobiDM
+
+
+'''
+======================
+公用属性
+======================
+'''
+GUsdt = 7.12
+
+
+'''
+======================
+公用函数
+======================
+'''
 # 保留4位小数
-def convert2f(floatValue, nums=3):
+def convert2f(floatValue, nums=4):
     if floatValue:
         if nums == 0:
             return int(floatValue)
@@ -25,51 +45,71 @@ def convert2f(floatValue, nums=3):
     return 0.0
 
 
+
+
+'''
+======================
+主页面类
+======================
+'''
 class MuMainWindow(QMainWindow):
+    #QT UI
     __Slate = ''
+    #火币API
     __HBAPI = ''
-    __SearchName = 'EOS_CW'
+    #线程
+    __ThreadName__ = ''
 
     def __init__(self):
         QMainWindow.__init__(self)
 
-        #### input huobi dm url
         URL = ''
         ACCESS_KEY = ''
         SECRET_KEY = ''
 
-        ####  input your access_key and secret_key below:
+        #读取key
         with open('C:\HuoBiKey.json', 'r') as loadf:
             load_dict = json.load(loadf)
             URL = load_dict['URL']
             ACCESS_KEY = load_dict['Access_Key']
             SECRET_KEY = load_dict['Secret_Key']
-            pprint(URL)
-            pprint(ACCESS_KEY)
-            pprint(SECRET_KEY)
 
         # 初始化账号
         self.__HBAPI = HuobiDM(URL, ACCESS_KEY, SECRET_KEY)
 
-        #创建查询线程
-        # try:
-        #   newThread = threading.Thread(target=self.ThreadUpdateDepth)
-        #   newThread.start()
-        #except:
-        #    pprint("Error: unable to start thread")
-
+        #开启多线程
+        __ThreadName__ = threading.Thread(target=self.ThreadUpdate)
+        __ThreadName__.start()
         pass
 
     #定时更新线程
-    def ThreadUpdateDepth(self):
-        while 1 :
-            if self.__SearchName != '' :
-                jsonValue = self.__HBAPI.get_contract_depth('EOS_CW', 'step1')
-                pprint(jsonValue)
-            pass
-        time.sleep(1)
-        pass
+    def ThreadUpdate(self):
+        GDataGlobal.GThreadFrames = 0
+        delayTime = 1
 
+        while 1:
+            if GDataGlobal.GCurSymbol:
+                #初始化,币基础信息
+                if GDataGlobal.GThreadFrames == 0:
+                    self.CallContract_info()
+
+                #更新指数信息
+                if GDataGlobal.GThreadFrames % 5 == 0:
+                    self.Callcontract_index()
+
+                # 更新当前账户信息
+                if GDataGlobal.GThreadFrames % 5 == 0:
+                    self.Callcontract_account_info()
+                    self.UpdateUIBBInfo()
+
+                GDataGlobal.GThreadFrames += delayTime
+                #GDataGlobal.GCurSymbol if end
+
+            time.sleep(delayTime)
+
+
+
+    #初始化UI
     def SetUI(self , slate):
         self.__Slate = slate
         self.__Slate.BTNEOS.clicked.connect(self.CallEOSInfo)
@@ -84,62 +124,67 @@ class MuMainWindow(QMainWindow):
     ======================
     '''
     #查看某个币种
-    def CallSeeBBInfo(self):
-        self.Callcontract_index()
-        self.CallContract_info()
-        self.Callcontract_account_info()
-        self.UpdateUIBBInfo()
+    def CallSeeBBInfo(self,symbol):
+        GDataGlobal.GCurSymbol =symbol
+        GDataGlobal.GThreadFrames = 0
         pass
 
     #获取合约信息
     def CallContract_info(self):
         if not GDataGlobal.GCurSymbol:
             return
+        try:
+            jsonValue = self.__HBAPI.get_contract_info(GDataGlobal.GCurSymbol, 'this_week')
+            GDataDMInfo.status = jsonValue['status']
+            GDataDMInfo.symbol = jsonValue['data'][0]['symbol']
+            GDataDMInfo.contract_code = jsonValue['data'][0]['contract_code']
+            GDataDMInfo.contract_type = jsonValue['data'][0]['contract_type']
+            GDataDMInfo.contract_size = jsonValue['data'][0]['contract_size']
+            GDataDMInfo.price_tick = jsonValue['data'][0]['price_tick']
+            GDataDMInfo.delivery_date = jsonValue['data'][0]['delivery_date']
+            GDataDMInfo.create_date = jsonValue['data'][0]['create_date']
+            GDataDMInfo.contract_status = jsonValue['data'][0]['contract_status']
+            # GDataDMInfo.printObj()
+        except:
+            pprint('CallContract_info Error')
+            pass
 
-        jsonValue = self.__HBAPI.get_contract_info(GDataGlobal.GCurSymbol, 'this_week')
-        GDataDMInfo.status = jsonValue['status']
-        GDataDMInfo.symbol = jsonValue['data'][0]['symbol']
-        GDataDMInfo.contract_code = jsonValue['data'][0]['contract_code']
-        GDataDMInfo.contract_type = jsonValue['data'][0]['contract_type']
-        GDataDMInfo.contract_size = jsonValue['data'][0]['contract_size']
-        GDataDMInfo.price_tick = jsonValue['data'][0]['price_tick']
-        GDataDMInfo.delivery_date = jsonValue['data'][0]['delivery_date']
-        GDataDMInfo.create_date = jsonValue['data'][0]['create_date']
-        GDataDMInfo.contract_status = jsonValue['data'][0]['contract_status']
-        GDataDMInfo.printObj()
-        pass
+
 
     #获取账户信息
     def Callcontract_account_info(self):
         if not GDataGlobal.GCurSymbol:
             return
-        jsonValue = self.__HBAPI.get_contract_account_info(GDataGlobal.GCurSymbol)
-        GDataDMBBInfo.status = jsonValue['status']
-        GDataDMBBInfo.symbol = jsonValue['data'][0]['symbol']
-        GDataDMBBInfo.margin_balance = jsonValue['data'][0]['margin_balance']
-        GDataDMBBInfo.margin_position = jsonValue['data'][0]['margin_position']
-        GDataDMBBInfo.margin_frozen	 = jsonValue['data'][0]['margin_frozen']
-        GDataDMBBInfo.margin_available = jsonValue['data'][0]['margin_available']
-        GDataDMBBInfo.profit_real = jsonValue['data'][0]['profit_real']
-        GDataDMBBInfo.profit_unreal = jsonValue['data'][0]['profit_unreal']
-        GDataDMBBInfo.risk_rate = jsonValue['data'][0]['risk_rate']
-        GDataDMBBInfo.liquidation_price = jsonValue['data'][0]['liquidation_price']
-        GDataDMBBInfo.withdraw_available = jsonValue['data'][0]['withdraw_available']
-        GDataDMBBInfo.lever_rate = jsonValue['data'][0]['lever_rate']
-        GDataDMBBInfo.adjust_factor = jsonValue['data'][0]['adjust_factor']
-        GDataDMBBInfo.printObj()
-        pass
+        try:
+            jsonValue = self.__HBAPI.get_contract_account_info(GDataGlobal.GCurSymbol)
+            GDataDMBBInfo.status = jsonValue['status']
+            GDataDMBBInfo.symbol = jsonValue['data'][0]['symbol']
+            GDataDMBBInfo.margin_balance = jsonValue['data'][0]['margin_balance']
+            GDataDMBBInfo.margin_position = jsonValue['data'][0]['margin_position']
+            GDataDMBBInfo.margin_frozen = jsonValue['data'][0]['margin_frozen']
+            GDataDMBBInfo.margin_available = jsonValue['data'][0]['margin_available']
+            GDataDMBBInfo.profit_real = jsonValue['data'][0]['profit_real']
+            GDataDMBBInfo.profit_unreal = jsonValue['data'][0]['profit_unreal']
+            GDataDMBBInfo.risk_rate = jsonValue['data'][0]['risk_rate']
+            GDataDMBBInfo.liquidation_price = jsonValue['data'][0]['liquidation_price']
+            GDataDMBBInfo.withdraw_available = jsonValue['data'][0]['withdraw_available']
+            GDataDMBBInfo.lever_rate = jsonValue['data'][0]['lever_rate']
+            GDataDMBBInfo.adjust_factor = jsonValue['data'][0]['adjust_factor']
+        except:
+            pprint('Callcontract_account_info Error')
+            pass
 
     #获取合约指数信息
     def Callcontract_index(self):
         if not GDataGlobal.GCurSymbol:
             return
-        jsonValue = self.__HBAPI.get_contract_index(GDataGlobal.GCurSymbol)
-        if jsonValue['status'] == 'ok':
-            GDataGlobal.Gindex_price = convert2f(jsonValue['data'][0]['index_price'])
-
-        GDataGlobal.printObj()
-        pass
+        try:
+            jsonValue = self.__HBAPI.get_contract_index(GDataGlobal.GCurSymbol)
+            if jsonValue['status'] == 'ok':
+                GDataGlobal.Gindex_price = convert2f(jsonValue['data'][0]['index_price'])
+            # GDataGlobal.printObj()
+        except:
+            pass
 
     '''
     ======================
@@ -195,14 +240,12 @@ class MuMainWindow(QMainWindow):
 
     #EOS按钮
     def CallEOSInfo(self):
-        GDataGlobal.GCurSymbol = 'EOS'
-        self.CallSeeBBInfo()
+        self.CallSeeBBInfo('EOS')
         pass
 
     #ETH按钮
     def CallETHInfo(self):
-        GDataGlobal.GCurSymbol = 'ETH'
-        self.CallSeeBBInfo()
+        self.CallSeeBBInfo('ETH')
         pass
 
     '''
@@ -214,37 +257,52 @@ class MuMainWindow(QMainWindow):
     def UpdateUIBBInfo(self):
         if not GDataDMBBInfo.status == 'ok' :
             return
-        str1 = str(convert2f(GDataDMBBInfo.margin_balance))
-        str2 = str(convert2f(GDataDMBBInfo.margin_balance * GDataGlobal.Gindex_price * 7.12, 0))
-        self.__Slate.info1.setText(str1 + '|' + str2)
 
-        if GDataDMBBInfo.profit_real >= 0:
-            self.__Slate.info2.setStyleSheet("color:green")
-        else:
-            self.__Slate.info2.setStyleSheet("color:red")
+        #输出当前属性
+        GDataDMBBInfo.printObj()
+
+        str1 = str(convert2f(GDataDMBBInfo.margin_balance))
+        str2 = str(convert2f(GDataDMBBInfo.margin_balance * GDataGlobal.Gindex_price * GUsdt, 0))
+        self.__Slate.info1.setText(str1)
+        self.__Slate.info21.setText(str2)
+
         # 已实现盈亏
         str1 = str(convert2f(GDataDMBBInfo.profit_real))
-        str2 = str(convert2f(GDataDMBBInfo.profit_real * GDataGlobal.Gindex_price * 7.12, 0))
-        self.__Slate.info2.setText(str1 + '|' + str2)
+        str2 = str(convert2f(GDataDMBBInfo.profit_real * GDataGlobal.Gindex_price * GUsdt, 0))
+        curSheet = "color:green" if GDataDMBBInfo.profit_real >= 0 else "color:red"
+        self.__Slate.info2.setStyleSheet(curSheet)
+        self.__Slate.info2.setText(str1)
+        self.__Slate.info22.setStyleSheet(curSheet)
+        self.__Slate.info22.setText(str2)
 
-        if GDataDMBBInfo.profit_unreal >= 0:
-            self.__Slate.info3.setStyleSheet("color:green")
-        else:
-            self.__Slate.info3.setStyleSheet("color:red")
+        #未实现盈亏
         str1 = str(convert2f(GDataDMBBInfo.profit_unreal))
-        str2 = str(convert2f(GDataDMBBInfo.profit_unreal * GDataGlobal.Gindex_price * 7.12, 0))
-        self.__Slate.info3.setText(str1 + '|' + str2)
+        str2 = str(convert2f(GDataDMBBInfo.profit_unreal * GDataGlobal.Gindex_price * GUsdt, 0))
+        curSheet = "color:green" if GDataDMBBInfo.profit_unreal >= 0 else "color:red"
+        self.__Slate.info3.setStyleSheet(curSheet)
+        self.__Slate.info3.setText(str1)
+        self.__Slate.info23.setStyleSheet(curSheet)
+        self.__Slate.info23.setText(str2)
 
+        #可用保证金
         str1 = str(convert2f(GDataDMBBInfo.margin_available))
-        str2 = str(convert2f(GDataDMBBInfo.margin_available * GDataGlobal.Gindex_price * 7.12, 0))
-        self.__Slate.info4.setText(str1 + '|' + str2)
+        str2 = str(convert2f(GDataDMBBInfo.margin_available * GDataGlobal.Gindex_price * GUsdt, 0))
+        self.__Slate.info4.setText(str1)
+        self.__Slate.info24.setText(str2)
 
-        self.__Slate.info5.setText(str(convert2f(GDataDMBBInfo.margin_position)))
+        #持仓保证金
+        str1 = str(convert2f(GDataDMBBInfo.margin_position))
+        str2 = str(convert2f(GDataDMBBInfo.margin_position * GDataGlobal.Gindex_price * GUsdt, 0))
+        self.__Slate.info5.setText(str1)
+        self.__Slate.info25.setText(str2)
+
+        #冻结资金
         self.__Slate.info6.setText(str(convert2f(GDataDMBBInfo.margin_frozen)))
 
         #None
         self.__Slate.info7.setText(str(convert2f(GDataDMBBInfo.liquidation_price)))
-        self.__Slate.info8.setText(str(convert2f(GDataDMBBInfo.risk_rate)))
+
+        self.__Slate.info8.setText(str(convert2f(GDataDMBBInfo.risk_rate)*100) + '%')
         self.__Slate.info9.setText(str(convert2f(GDataDMBBInfo.adjust_factor)))
         self.__Slate.info10.setText(str(convert2f(GDataDMBBInfo.lever_rate)))
         self.__Slate.info11.setText(str(GDataDMBBInfo.symbol))

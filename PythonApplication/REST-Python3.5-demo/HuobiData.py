@@ -26,6 +26,8 @@ class DataGlobal(DataRoot):
     GCurSymbol = ''
     # 当前指数信息，当前价位
     Gindex_price = ''
+    #线程更新总次数
+    GThreadFrames = 0
     pass
 GDataGlobal = DataGlobal()
 
@@ -34,13 +36,21 @@ GDataGlobal = DataGlobal()
 #合约信息
 """"""
 class DataDMInfo(DataRoot) :
+    #品种代码
     symbol = ''
+    #合约代码
     contract_code = ''
+    #合约类型
     contract_type = ''
+    #合约面值，即1张合约对应多少美元
     contract_size = ''
+    #合约价格最小变动精度
     price_tick = ''
+    #合约交割日期
     delivery_date = ''
+    #合约上市日期
     create_date = ''
+    #合约状态
     contract_status = ''
     pass
 GDataDMInfo = DataDMInfo()

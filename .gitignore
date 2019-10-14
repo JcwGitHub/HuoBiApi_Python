@@ -1,3 +1,6 @@
 x64/
 .vs/
+.idea/
 Huobi_Rest_ExeTest/Huobi_Rest_ExeTest.vcxproj
+PythonApplication/build
+PythonApplication/__pycache__
