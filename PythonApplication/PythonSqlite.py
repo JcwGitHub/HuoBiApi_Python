@@ -1,24 +1,31 @@
 ﻿import sqlite3
+from pprint import pprint
 
-conn = sqlite3.connect('test.db')
-c = conn.cursor()
 
-# execute SQL commands, commit if changes are needed
+GSqlite = sqlite3.connect('HuoBiOrder.db')
+GSqliteCur = GSqlite.cursor()
 
-c.execute("INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY) \
-      VALUES (2, 'Allen', 25, 'Texas', 15000.00 )");
+class HuoBiSqlite:
+    def __init__(self):
+        pass
 
-c.execute("INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY) \
-      VALUES (3, 'Teddy', 23, 'Norway', 20000.00 )");
+    #打开表
+    def openTable(self):
+        create_tb_cmd = "CREATE TABLE IF NOT EXISTS USER(NAME TEXT, AGE INT,SALARY REAL)"
+        pass
 
-c.execute("INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY) \
-      VALUES (4, 'Mark', 25, 'Rich-Mond ', 65000.00 )");
+    #关闭表
+    def closeTable(self):
+        pass
 
-# Save (commit) the changes
+    #关闭数据库
+    def close(self):
+        GSqlite.commit()
+        GSqlite.close()
+        pass
 
-conn.commit()
+GHuoBiSqlite = HuoBiSqlite()
 
-# close the database when the operation is completed
-# Just be sure any changes have been committed or they will be lost.
 
-conn.close()
+
+

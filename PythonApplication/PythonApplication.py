@@ -11,6 +11,7 @@ from pprint import pprint
 #数据结构
 #import PythonThread
 from HuobiData import GDataDMInfo, GDataGlobal, GDataDMBBInfo, Datacontract_index
+from PythonSqlite import GHuoBiSqlite
 
 #QT
 from PyQt5.QtGui import QPalette
@@ -20,7 +21,7 @@ import PythonApplicationUI
 
 #huoBi API
 from HuobiDMService import HuobiDM
-
+from huobi import GHuoBiDingYue
 
 '''
 ======================
@@ -59,6 +60,9 @@ class MuMainWindow(QMainWindow):
     __HBAPI = ''
     #线程
     __ThreadName__ = ''
+    __ThreadFinish = 0
+    __threadHY = ''
+    __threadHYFinish = 0
 
     def __init__(self):
         QMainWindow.__init__(self)
@@ -80,14 +84,23 @@ class MuMainWindow(QMainWindow):
         #开启多线程
         __ThreadName__ = threading.Thread(target=self.ThreadUpdate)
         __ThreadName__.start()
+        __threadHY = threading.Thread(target=self.threadHY)
+        __threadHY.start()
         pass
+
+    #合约订阅线程
+    def threadHY(self):
+        GHuoBiDingYue.Connect()
+        while self.__threadHYFinish == 0:
+            GHuoBiDingYue.tick()
+
 
     #定时更新线程
     def ThreadUpdate(self):
         GDataGlobal.GThreadFrames = 0
         delayTime = 1
 
-        while 1:
+        while self.__ThreadFinish == 0:
             if GDataGlobal.GCurSymbol:
                 #初始化,币基础信息
                 if GDataGlobal.GThreadFrames == 0:
@@ -106,8 +119,6 @@ class MuMainWindow(QMainWindow):
                 #GDataGlobal.GCurSymbol if end
 
             time.sleep(delayTime)
-
-
 
     #初始化UI
     def SetUI(self , slate):
@@ -238,9 +249,15 @@ class MuMainWindow(QMainWindow):
         pprint(totalPay)
         pass
 
-    #EOS按钮
+    #EOS按钮/程序退出
     def CallEOSInfo(self):
-        self.CallSeeBBInfo('EOS')
+        #停止线程
+        self.__ThreadFinish = 1
+        self.__threadHYFinish = 1
+        #关闭数据库
+        GHuoBiSqlite.close()
+        #退出程序
+        sys.exit(0)
         pass
 
     #ETH按钮
@@ -320,4 +337,5 @@ if __name__ == '__main__':
     MainWindow.SetUI(ui)
     MainWindow.show()
     sys.exit(app.exec_())
+
     pass
