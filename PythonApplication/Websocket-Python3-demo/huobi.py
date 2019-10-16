@@ -6,7 +6,7 @@ import gzip
 
 from websocket import create_connection
 from pprint import pprint
-from PythonSqlite import GHuoBiSqlite
+from PythonSqlite import HuoBiSqlite
 
 # 订阅 KLine 数据
 tradeStr_kline = """
@@ -51,12 +51,19 @@ class HuoBiDingYue:
     __ws__ = ''
     __trade_id = ''
 
+    # 另一个线程初始化
+    __SqlManager = HuoBiSqlite()
+
     #链接服务器
     def Connect(self):
         try:
+            #连接服务器
             self.__ws__ = create_connection("wss://www.hbdm.com/ws", http_proxy_host='127.0.0.1', http_proxy_port='1080')
             self.__ws__.send(tradeStr_tradeDetail)
             pprint('connect ws Success')
+
+            #打开数据库
+            self.__SqlManager.open()
             return 1
         except:
             print('connect ws error')
@@ -97,7 +104,7 @@ class HuoBiDingYue:
                             tempinfo.price = tempData['price']
                             tempinfo.ts = tempData['ts']
                             GDataBase.append(tempData)
-                            if len(GDataBase) > 10:
+                            if len(GDataBase) > 1:
                                 self.saveSqlite()
                                 pass
                         except:
@@ -112,13 +119,17 @@ class HuoBiDingYue:
     #保存数据库
     def saveSqlite(self):
         pprint('Save Sqlite Start')
+
         for var in GDataBase:
+            try:
+                #GHuoBiSqlite.insertOrder(var['ts'], var['amount'], var['direction'], var['price'])
+                self.__SqlManager.insertOrder(var)
+            except Exception as  e:
+                pprint(e)
             pass
 
+        #提交
+        self.__SqlManager.commit()
         GDataBase.clear()
         pprint('Save Sqlite End')
         pass
-
-
-
-GHuoBiDingYue = HuoBiDingYue()

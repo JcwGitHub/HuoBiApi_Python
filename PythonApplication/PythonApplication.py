@@ -11,7 +11,7 @@ from pprint import pprint
 #数据结构
 #import PythonThread
 from HuobiData import GDataDMInfo, GDataGlobal, GDataDMBBInfo, Datacontract_index
-from PythonSqlite import GHuoBiSqlite
+from PythonSqlite import HuoBiSqlite
 
 #QT
 from PyQt5.QtGui import QPalette
@@ -21,7 +21,7 @@ import PythonApplicationUI
 
 #huoBi API
 from HuobiDMService import HuobiDM
-from huobi import GHuoBiDingYue
+from huobi import HuoBiDingYue
 
 '''
 ======================
@@ -90,9 +90,10 @@ class MuMainWindow(QMainWindow):
 
     #合约订阅线程
     def threadHY(self):
-        GHuoBiDingYue.Connect()
+        huoBiDingYue = HuoBiDingYue()
+        huoBiDingYue.Connect()
         while self.__threadHYFinish == 0:
-            GHuoBiDingYue.tick()
+            huoBiDingYue.tick()
 
 
     #定时更新线程
