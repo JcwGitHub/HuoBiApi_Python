@@ -71,8 +71,12 @@ class HuoBiDingYue:
 
     #接受订阅信息
     def tick(self):
-        compressData = self.__ws__.recv()
-        result = gzip.decompress(compressData).decode('utf-8')
+        try:
+            compressData = self.__ws__.recv()
+            result = gzip.decompress(compressData).decode('utf-8')
+        except Exception as  e:
+            pprint(e)
+            return
 
         # 是否是心跳
         if result[:7] == '{"ping"':
@@ -104,7 +108,8 @@ class HuoBiDingYue:
                             tempinfo.price = tempData['price']
                             tempinfo.ts = str(tempData['ts'])
                             GDataBase.append(tempData)
-                        except:
+                        except Exception as e:
+                            pprint(e)
                             break
                     pass
 
@@ -113,8 +118,8 @@ class HuoBiDingYue:
                     pass
 
                     pprint('Receive New Order')
-            except Exception:
-                pprint('Receive Data Error')
+            except Exception as  e:
+                pprint(e)
                 pass
 
     #保存数据库
@@ -146,4 +151,5 @@ if __name__ == '__main__':
     threadHY = threading.Thread(target=threadUpdate)
     threadHY.start()
     while 1:
+        time.sleep(0.01)
         pass
