@@ -44,6 +44,7 @@ class HuoBiSqlite:
     __sqliteCur = ''
     __tableName = '[201910]'
 
+
     def __init__(self):
         pass
 
@@ -72,7 +73,7 @@ class HuoBiSqlite:
         try:
             #insert_dt_cmd = "INSERT INTO [" + self.__tableName + "](ts,amount,direction,price) VALUES (vdirection,123,vdirection,1.2);"
             #GHuoBiSqlite.insertOrder(var['ts'], var['amount'], var['direction'], var['price'])
-            insert_dt_cmd = 'insert into {0} (ts,amount,direction,price) VALUES ({1:s},{2},{3:s},{4})'.format(self.__tableName,str(dicValue['ts']),dicValue['amount'],str(dicValue['direction']),dicValue['price'])
+            insert_dt_cmd = 'insert into {1} (ts,amount,direction,price) VALUES ({0}{2}{0},{0}{3}{0},{0}{4}{0},{0}{5}{0})'.format("\'",self.__tableName,str(dicValue['ts']),dicValue['amount'],str(dicValue['direction']),dicValue['price'])
             # 主要就是上面的语句
             self.__sqliteCur.execute(insert_dt_cmd)
         except Exception as e:

@@ -2,7 +2,7 @@
 import json
 import time
 import gzip
-
+import threading
 
 from websocket import create_connection
 from pprint import pprint
@@ -100,18 +100,19 @@ class HuoBiDingYue:
                             tempData = jsonValue['tick']['data'][index]
                             tempinfo = HuoBiDingYueData()
                             tempinfo.amount = tempData['amount']
-                            tempinfo.direction = tempData['direction']
+                            tempinfo.direction = str(tempData['direction'])
                             tempinfo.price = tempData['price']
-                            tempinfo.ts = tempData['ts']
+                            tempinfo.ts = str(tempData['ts'])
                             GDataBase.append(tempData)
-                            if len(GDataBase) > 1:
-                                self.saveSqlite()
-                                pass
                         except:
                             break
+                    pass
+
+                    if len(GDataBase) > 0:
+                        self.saveSqlite()
+                    pass
 
                     pprint('Receive New Order')
-
             except Exception:
                 pprint('Receive Data Error')
                 pass
@@ -132,4 +133,17 @@ class HuoBiDingYue:
         self.__SqlManager.commit()
         GDataBase.clear()
         pprint('Save Sqlite End')
+        pass
+
+def threadUpdate():
+    dingyue = HuoBiDingYue()
+    dingyue.Connect()
+    while 1 :
+        dingyue.tick()
+    pass
+
+if __name__ == '__main__':
+    threadHY = threading.Thread(target=threadUpdate)
+    threadHY.start()
+    while 1:
         pass
