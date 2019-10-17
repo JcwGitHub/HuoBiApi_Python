@@ -54,20 +54,23 @@ class HuoBiDingYue:
     # 另一个线程初始化
     __SqlManager = HuoBiSqlite()
 
+    #链接数据库
+    def connectDB(self):
+        # 打开表
+        self.__SqlManager.open()
+        pass
+
     #链接服务器
     def Connect(self):
         try:
             #连接服务器
             self.__ws__ = create_connection("wss://www.hbdm.com/ws", http_proxy_host='127.0.0.1', http_proxy_port='1080')
             self.__ws__.send(tradeStr_tradeDetail)
-            pprint('connect ws Success')
 
-            #打开数据库
-            self.__SqlManager.open()
-            return 1
-        except:
-            print('connect ws error')
-            return 0
+            pprint('connect ws Success')
+        except Exception as e:
+            print(e.__class__,e)
+
 
     #接受订阅信息
     def tick(self):
@@ -75,7 +78,8 @@ class HuoBiDingYue:
             compressData = self.__ws__.recv()
             result = gzip.decompress(compressData).decode('utf-8')
         except Exception as  e:
-            pprint(e)
+            self.Connect()
+            pprint(e.__class__,e)
             return
 
         # 是否是心跳
@@ -108,8 +112,7 @@ class HuoBiDingYue:
                             tempinfo.price = tempData['price']
                             tempinfo.ts = str(tempData['ts'])
                             GDataBase.append(tempData)
-                        except Exception as e:
-                            pprint(e)
+                        except:
                             break
                     pass
 
@@ -140,16 +143,10 @@ class HuoBiDingYue:
         pprint('Save Sqlite End')
         pass
 
-def threadUpdate():
+if __name__ == '__main__':
     dingyue = HuoBiDingYue()
     dingyue.Connect()
+    dingyue.connectDB()
+
     while 1 :
         dingyue.tick()
-    pass
-
-if __name__ == '__main__':
-    threadHY = threading.Thread(target=threadUpdate)
-    threadHY.start()
-    while 1:
-        time.sleep(0.01)
-        pass

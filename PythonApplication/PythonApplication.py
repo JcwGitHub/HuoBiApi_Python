@@ -11,7 +11,6 @@ from pprint import pprint
 #数据结构
 #import PythonThread
 from HuobiData import GDataDMInfo, GDataGlobal, GDataDMBBInfo, Datacontract_index
-from PythonSqlite import HuoBiSqlite
 
 #QT
 from PyQt5.QtGui import QPalette
@@ -21,7 +20,7 @@ import PythonApplicationUI
 
 #huoBi API
 from HuobiDMService import HuobiDM
-from huobi import HuoBiDingYue
+
 
 '''
 ======================
@@ -61,8 +60,6 @@ class MuMainWindow(QMainWindow):
     #线程
     __ThreadName__ = ''
     __ThreadFinish = 0
-    __threadHY = ''
-    __threadHYFinish = 0
 
     def __init__(self):
         QMainWindow.__init__(self)
@@ -84,16 +81,8 @@ class MuMainWindow(QMainWindow):
         #开启多线程
         __ThreadName__ = threading.Thread(target=self.ThreadUpdate)
         __ThreadName__.start()
-        __threadHY = threading.Thread(target=self.threadHY)
-        __threadHY.start()
         pass
 
-    #合约订阅线程
-    def threadHY(self):
-        huoBiDingYue = HuoBiDingYue()
-        huoBiDingYue.Connect()
-        while self.__threadHYFinish == 0:
-            huoBiDingYue.tick()
 
 
     #定时更新线程
@@ -254,9 +243,7 @@ class MuMainWindow(QMainWindow):
     def CallEOSInfo(self):
         #停止线程
         self.__ThreadFinish = 1
-        self.__threadHYFinish = 1
-        #关闭数据库
-        GHuoBiSqlite.close()
+
         #退出程序
         sys.exit(0)
         pass
