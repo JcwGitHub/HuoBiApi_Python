@@ -45,7 +45,8 @@ class HuoBiDingYueData:
     amount = 0
     direction = ''
     price = 0.0
-    ts = ''
+    ts = 0
+    id = 0
 
 class HuoBiDingYue:
     __ws__ = ''
@@ -75,12 +76,15 @@ class HuoBiDingYue:
     #接受订阅信息
     def tick(self):
         try:
+            pprint('Start Receive')
             compressData = self.__ws__.recv()
             result = gzip.decompress(compressData).decode('utf-8')
         except Exception as  e:
             self.Connect()
             pprint(e.__class__,e)
             return
+
+        pprint('Receive')
 
         # 是否是心跳
         if result[:7] == '{"ping"':
@@ -110,20 +114,19 @@ class HuoBiDingYue:
                             tempinfo.amount = tempData['amount']
                             tempinfo.direction = str(tempData['direction'])
                             tempinfo.price = tempData['price']
-                            tempinfo.ts = str(tempData['ts'])
+                            tempinfo.ts = tempData['ts']
+                            tempinfo.id = tempData['id']
                             GDataBase.append(tempData)
                         except:
                             break
-                    pass
 
                     if len(GDataBase) > 0:
                         self.saveSqlite()
-                    pass
 
                     pprint('Receive New Order')
             except Exception as  e:
                 pprint(e)
-                pass
+
 
     #保存数据库
     def saveSqlite(self):
@@ -135,7 +138,6 @@ class HuoBiDingYue:
                 self.__SqlManager.insertOrder(var)
             except Exception as  e:
                 pprint(e)
-            pass
 
         #提交
         self.__SqlManager.commit()

@@ -4,7 +4,7 @@ from pprint import pprint
 
 #时间
 curTime = time.localtime(time.time())
-gTableName ='[' + str(curTime.tm_year) + str(curTime.tm_mon) + ']'
+gTableName = str(curTime.tm_year) + str(curTime.tm_mon)
 
 class HuoBiSqlite:
     __sqlite = ''
@@ -27,10 +27,10 @@ class HuoBiSqlite:
             PRAGMA auto_vacuum        = 0
            """
             self.__sqlite.execute('pragma journal_mode=wal;')
-            self.__sqlite.execute('PRAGMA wal_autocheckpoint=10;')
+            self.__sqlite.execute('PRAGMA wal_autocheckpoint=100;')
             #self.__sqlite.execute('PRAGMA wal_checkpoint;')
             self.__sqliteCur = self.__sqlite.cursor()
-            create_tb_cmd = "CREATE TABLE IF NOT EXISTS " + gTableName + "(ts STRING NOT NULL, amount INT,direction STRING,price DOUBLE);"
+            create_tb_cmd = 'CREATE TABLE IF NOT EXISTS [{}](id INTEGER NOT NULL ,ts INTEGER NOT NULL, amount INT,direction TEXT,price DOUBLE);'.format(gTableName)
         except Exception as  e:
             pprint(e)
 
@@ -53,14 +53,12 @@ class HuoBiSqlite:
         try:
             #insert_dt_cmd = "INSERT INTO [" + self.__tableName + "](ts,amount,direction,price) VALUES (vdirection,123,vdirection,1.2);"
             #GHuoBiSqlite.insertOrder(var['ts'], var['amount'], var['direction'], var['price'])
-            insert_dt_cmd = 'insert into {1} (ts,amount,direction,price) VALUES ({0}{2}{0},{0}{3}{0},{0}{4}{0},{0}{5}{0})'.format("\'",gTableName,str(dicValue['ts']),dicValue['amount'],str(dicValue['direction']),dicValue['price'])
+            #insert_dt_cmd = 'insert into {1} (ts,id,amount,direction,price) VALUES ({0}{2}{0},{0}{3}{0},{0}{4}{0},{0}{5}{0},{0}{5}{0})'.format("\'",gTableName,str(dicValue['ts']),dicValue['amount'],str(dicValue['direction']),dicValue['price'])
+            insert_dt_cmd = 'insert into [{1}] (ts,id,amount,direction,price) VALUES ({ts},{id},{amount},{0}{direction}{0},{price})'.format("\'",gTableName,**dicValue)
             # 主要就是上面的语句
             self.__sqliteCur.execute(insert_dt_cmd)
         except Exception as e:
-            print('错误类型是', e.__class__.__name__)
-            print('错误明细是', e)
-            pprint('insertOrder error')
-        pass
+            print(e.__class__,e)
 
 
 

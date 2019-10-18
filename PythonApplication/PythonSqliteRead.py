@@ -26,21 +26,21 @@ class HuoBiSqliteRead:
 
             #self.__sqliteCur = self.__sqlite.execute('SELECT * from {}'.format(gTableName))
             self.__sqliteCur = self.__sqlite.cursor()
-
-            #表头
-            self.__tableCur = self.__sqliteCur.execute('SELECT * FROM {}'.format(gTableName))
-            cur1 = time.time()
-            self.__nums = self.__tableCur.fetchmany(100)
-            cur2 = time.time()
-            pprint(cur2 - cur1)
         except Exception as  e:
             pprint(e)
 
-    def getAllLineNums(self):
-        return len(self.__nums)
+    def getOrderLastLines(self,lines):
+        # 表头
+        # self.__tableCur = self.__sqliteCur.execute('SELECT * FROM {}'.format(gTableName))
+        cur1 = time.time()
+        self.__tableCur = self.__sqliteCur.execute('SELECT * FROM {} ORDER BY id DESC limit {}'.format(gTableName,lines))
+        cur2 = time.time()
+        pprint(cur2 - cur1)
+        return self.__tableCur.fetchall()
 
 
 
+#测试
 if __name__ == '__main__':
     sqlRead = HuoBiSqliteRead()
     sqlRead.open()
