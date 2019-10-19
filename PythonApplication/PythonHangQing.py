@@ -18,10 +18,10 @@ from PythonHangQingUI import Ui_PythonHangQing
 
 #行情页面
 class Ui_HangQing(QWidget):
-    __Slate = Ui_PythonHangQing()
 
     def __init__(self,parent=None):
         super(Ui_HangQing, self).__init__(parent)
+        self.__Slate = Ui_PythonHangQing()
         self.__Slate.setupUi(self)
 
 

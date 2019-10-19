@@ -6,7 +6,7 @@ from pprint import pprint
 #Root
 """"""
 class DataRoot(object):
-    status = ''
+    status = 'error'
     impDataUpdate = ''
     #打印信息
     def printObj(self):
@@ -90,6 +90,44 @@ class DataDMBBInfo(DataRoot):
     pass
 GDataDMBBInfo = DataDMBBInfo()
 
+
+#用户某个币持仓信息
+class DataDMAllOrder(DataRoot):
+    symbol = ''
+    # 合约代码 "BTC180914" ...
+    contract_code = ''
+    # 合约类型 当周:"this_week", 次周:"next_week", 季度:"quarter"
+    contract_type = ''
+    #持仓量
+    volume = 0
+    #可平仓数量
+    available = 0
+    #冻结数量
+    frozen = 0
+    #开仓均价
+    cost_open = 0.0
+    #持仓均价
+    cost_hold = 0.0
+    #未实现盈亏
+    profit_unreal = 0.0
+    #收益率
+    profit_rate = 0.0
+    #收益
+    profit = 0.0
+    #持仓保证金
+    position_margin = 0.0
+    #杠杠倍数
+    lever_rate = 0
+    #"buy":买 "sell":卖
+    direction = ''
+    #最新价
+    last_price = 0.0
+
+class DataDMAllOrders(DataRoot):
+    data = dict()
+GDataDMAllOrders = DataDMAllOrders()
+
+#指数信息
 class Datacontract_index(DataRoot):
     symbol = ''
     index_price =''
