@@ -28,7 +28,9 @@ class DataGlobal(DataRoot):
     Gindex_price = ''
     #线程更新总次数
     GThreadFrames = 0
-    pass
+    #USDT价格
+    GUSDT = 7.1
+
 GDataGlobal = DataGlobal()
 
 
@@ -52,7 +54,7 @@ class DataDMInfo(DataRoot) :
     create_date = ''
     #合约状态
     contract_status = ''
-    pass
+
 GDataDMInfo = DataDMInfo()
 
 
@@ -87,7 +89,7 @@ class DataDMBBInfo(DataRoot):
     adjust_factor = ''
     #list
     ts = ''
-    pass
+
 GDataDMBBInfo = DataDMBBInfo()
 
 
@@ -124,7 +126,7 @@ class DataDMAllOrder(DataRoot):
     last_price = 0.0
 
 class DataDMAllOrders(DataRoot):
-    data = dict()
+    data = list()
 GDataDMAllOrders = DataDMAllOrders()
 
 #指数信息
@@ -133,4 +135,26 @@ class Datacontract_index(DataRoot):
     index_price =''
     index_ts = ''
     ts =''
-    pass
+
+
+#下单数据
+class DataOrderInfo(DataRoot):
+    symbol = ''
+    contract_type = 'this_week'
+    #USDT
+    price = 0.0
+    #张
+    volume = 0
+    #"buy":买 "sell":卖
+    direction = ''
+    #"open":开仓 "close":平仓
+    offset = ''
+    #杠杆
+    lever_rate = 0
+    #订单报价类型 "limit":限价 "opponent":对手价 "post_only":只做maker单,post only下单只受用户持仓数量限制,
+    # optimal_5：最优5档、optimal_10：最优10档、optimal_20：最优20档，ioc:IOC订单，fok：FOK订单
+    #对手价下单price价格参数不用传，对手价下单价格是买一和卖一价, optimal_5：最优5档、optimal_10：最优10档、optimal_20：最优20档下单price价格参数不用传，"limit": 限价，"post_only": 只做maker单
+    #需要传价格，"fok"：全部成交或立即取消，"ioc": 立即成交并取消剩余。
+    order_price_type = ''
+
+GDataOrderInfo = DataOrderInfo()

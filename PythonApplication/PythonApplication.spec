@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['PythonApplication.py'],
-             pathex=['D:\\NewProject\\VsProject\\HuoBiApi_Python\\PythonApplication\\REST-Python3.5-demo', 'D:\\NewProject\\VsProject\\HuoBiApi_Python\\PythonApplication'],
+             pathex=['E:\\Works\\HuoBiApi_Python\\PythonApplication','E:\\Works\\HuoBiApi_Python\\PythonApplication\\REST-Python3.5-demo'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -30,4 +30,4 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True )
+          console=False )
