@@ -10,6 +10,7 @@ from pprint import pprint
 
 #数据结构
 #import PythonThread
+
 from HuobiData import GDataDMInfo, GDataGlobal, GDataDMBBInfo, Datacontract_index, GDataDMAllOrders, DataDMAllOrder, \
     GDataOrderInfo
 
@@ -60,6 +61,10 @@ class MuMainWindow(QMainWindow):
         self.__Slate = PythonApplicationUI.Ui_MainWindow()
         self.setUpUI()
 
+
+
+
+        return
         #初始化Key
         URL = ''
         ACCESS_KEY = ''
